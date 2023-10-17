@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <title>Dashboard</title>
+  </head>
+  <body>
+    <h1>Dashboard</h1>
+    <p>Welcome, {{ user_info.displayName }}!</p>
+    <h2>Your Groups</h2>
+    <ul>
+      {% for group in groups %}
+        <li>{{ group.displayName }}</li>
+      {% endfor %}
+    </ul>
+    <a href="/logout">Logout</a>
+  </body>
+</html>
