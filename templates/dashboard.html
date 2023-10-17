@@ -4,16 +4,27 @@
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <title>Dashboard</title>
+    <!-- Optional: Include a CSS framework or your custom styles to improve the look of the button and layout -->
   </head>
   <body>
     <h1>Dashboard</h1>
-    <p>Welcome, {{ user_info.displayName }}!</p>
+    <p>Welcome, {{ user_info.displayName }}:{{ user_role }}!</p>
+
+    <!-- Conditionally display the 'Create Data Source' button for admin users -->
+    {% if user_role == 'admin' %}
+    <div>
+      <!-- This link should point to the route that handles the data source creation form -->
+      <a href="/datasource/create" class="btn btn-primary">Create Data Source</a>
+    </div>
+    {% endif %}
+
     <h2>Your Groups</h2>
     <ul>
       {% for group in groups %}
         <li>{{ group.displayName }}</li>
       {% endfor %}
     </ul>
+    <a href="/datasources">View Data Sources</a>
     <a href="/logout">Logout</a>
   </body>
 </html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Data Sources</title>
+    <!-- Add any additional header tags here -->
+</head>
+<body>
+
+<h1>Data Sources</h1>
+
+<table border="1">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Created By</th>
+            <th>Time Created</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for data_source in data_sources %}
+            <tr>
+                <td>{{ data_source.name }}</td>
+                <td>{{ data_source.description }}</td>
+                <td>{{ data_source.created_by }}</td>
+                <td>{{ data_source.created_at }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Include a link to go back to the dashboard or any other page -->
+<a href="/">Back to Dashboard</a>
+
+</body>
+</html>
