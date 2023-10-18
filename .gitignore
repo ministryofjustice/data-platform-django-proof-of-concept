@@ -150,6 +150,9 @@ dmypy.json
 # pytype static type analyzer
 .pytype/
 
+# Flask
+**/**flask_session
+
 # Cython debug symbols
 cython_debug/
 
@@ -164,5 +167,4 @@ cython_debug/
 secrets.json
 
 # IDE
-
-**.*vscode
+**/*.vscode
