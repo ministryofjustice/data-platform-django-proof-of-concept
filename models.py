@@ -6,9 +6,7 @@ db = SQLAlchemy()
 
 
 def init_app(app):
-    app.config[
-        "SQLALCHEMY_DATABASE_URI"
-    ] = "sqlite:///data_access_manager.db"
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///data_access_manager.db"
     app.config[
         "SQLALCHEMY_TRACK_MODIFICATIONS"
     ] = False  # Optional: Disable event system if not needed

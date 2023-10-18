@@ -14,11 +14,10 @@ with open("secrets.json") as f:
     secrets = json.load(f)
 
 
-
 # Initialize the Flask application
 app = Flask(__name__)
-app.config['SECRET_KEY'] = secrets["session_secret"]
-app.config['SESSION_TYPE'] = 'filesystem'
+app.config["SECRET_KEY"] = secrets["session_secret"]
+app.config["SESSION_TYPE"] = "filesystem"
 
 # Initialize database
 init_app(app)
@@ -63,9 +62,9 @@ def login():
 @app.route("/login/authorized")
 def authorized():
     token = azure.authorize_access_token()
-    access_token = token.get('access_token')
+    access_token = token.get("access_token")
     if access_token:
-        session['access_token'] = access_token
+        session["access_token"] = access_token
     user_resp = azure.get("https://graph.microsoft.com/v1.0/me", token=token)
     user_info = user_resp.json()
 
@@ -151,15 +150,23 @@ def create_data_source():
         group_name = f"data_platform_datasource_{form.name.data}_{data_source.id}"
 
         # Create the group in Azure AD
-        aad_group_id = create_aad_group(group_name=group_name, description=form.name.data, access_token=session.get("token").get("access_token"), user_id=current_user_id, dry_run=False)
+        aad_group_id = create_aad_group(
+            group_name=group_name,
+            description=form.name.data,
+            access_token=session.get("token").get("access_token"),
+            user_id=current_user_id,
+            dry_run=False,
+        )
 
         if aad_group_id:
             data_source.aad_group_id = aad_group_id  # Save the new AAD group ID
             db.session.commit()
 
-            flash('Data source and associated AAD group created successfully!', 'success')
+            flash(
+                "Data source and associated AAD group created successfully!", "success"
+            )
         else:
-            flash('Failed to create AAD group.', 'error')
+            flash("Failed to create AAD group.", "error")
 
         flash("Data source created successfully!", "success")
         return redirect(
