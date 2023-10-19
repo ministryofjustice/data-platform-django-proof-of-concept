@@ -168,3 +168,4 @@ secrets.json
 
 # IDE
 **/*.vscode
+**/kubernetes
