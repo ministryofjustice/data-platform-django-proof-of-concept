@@ -38,6 +38,14 @@
 {% endif %}
 </div>
 
+<!-- Check if the user has the necessary permissions to launch VS Code -->
+{% if is_admin or user_has_access %}
+    <!-- Button to launch VS Code -->
+    <form action="{{ url_for('start_vscode', id=data_source.id) }}" method="post">
+        <input type="submit" value="Launch VS Code">
+    </form>
+{% endif %}
+
 <!-- Link to go back to the list of data sources -->
 <a href="{{ url_for('list_data_sources') }}">Back to Data Sources List</a>
 
