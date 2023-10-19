@@ -21,10 +21,11 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
+          LATEST_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
           docker buildx create --use
           docker buildx build \
             --platform linux/amd64,linux/arm64 \
-            -t ghcr.io/${{ github.repository }}:${{ github.ref }} \
+            -t ghcr.io/${{ github.repository }}:$LATEST_TAG \
             -t ghcr.io/${{ github.repository }}:latest \
             -f Dockerfile .
           docker buildx stop ${GITHUB_RUN_ID}
