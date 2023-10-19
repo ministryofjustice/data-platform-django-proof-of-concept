@@ -375,7 +375,7 @@ def start_vscode(id):
         vscode_url = launch_vscode_for_user(sanitized_user_id)
         flash('Your VS Code server is being started. Please wait a moment.', 'success')
     except Exception as e:
-        flash(f'An error occurred while starting your VS Code server: {str(e)}', 'error')
+        print(f'An error occurred while starting your VS Code server: {str(e)}', 'error')
         return redirect(url_for('data_source_details', id=id))  # Redirect back to the data source details in case of failure
 
     # Redirect to a waiting page or directly embed the VS Code interface if it's ready
