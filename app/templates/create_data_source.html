@@ -1,0 +1,32 @@
+<!-- In templates/create_data_source.html -->
+
+{% extends "base.html" %}  <!-- If you have a base template, or create one for consistent page layouts -->
+
+{% block content %}
+<h2>Create Data Source</h2>
+<form method="POST" action="{{ url_for('create_data_source') }}">
+    {{ form.hidden_tag() }}
+    <p>
+        {{ form.name.label }}<br>
+        {{ form.name(size=20) }}<br>
+        {% for error in form.name.errors %}
+        <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+    </p>
+    <p>
+        {{ form.description.label }}<br>
+        {{ form.description(rows=3, cols=40) }}<br>
+        {% for error in form.description.errors %}
+        <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+    </p>
+    <p>
+        {{ form.aws_resource_arn.label }}<br>
+        {{ form.aws_resource_arn(size=40) }}<br>
+        {% for error in form.aws_resource_arn.errors %}
+        <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+    </p>
+    <p>{{ form.submit() }}</p>
+</form>
+{% endblock %}

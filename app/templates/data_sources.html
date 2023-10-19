@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Data Sources</title>
+    <!-- You can add CSS or additional meta tags here -->
+</head>
+<body>
+
+<h1>Data Sources</h1>
+
+<!-- Data sources table -->
+<table border="1">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Created By</th>
+            <th>Time Created</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for data_source in data_sources %}
+            <tr>
+                <td>{{ data_source.name }}</td>
+                <td>{{ data_source.description }}</td>
+                <td>{{ data_source.created_by }}</td>
+                <td>{{ data_source.created_at }}</td>
+                <td>
+                    <!-- Link to view details of the data source -->
+                    <a href="{{ url_for('data_source_details', id=data_source.id) }}">View Details</a>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Link to go back to the dashboard or any other navigation options -->
+<a href="/">Back to Dashboard</a>
+
+</body>
+</html>
