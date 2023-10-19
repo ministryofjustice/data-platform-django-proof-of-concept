@@ -360,11 +360,13 @@ def start_vscode(id):
     data_source = DataSource.query.get_or_404(id)
 
     # Check if the user has access to the data source
-    # This part may vary based on your permissions model. Here, we're checking if the user is among the assigned users.
+    current_user_id = session.get("user")["id"]
+    is_admin = current_user_id == data_source.created_by
+
     permissions = UserDataSourcePermission.query.filter_by(data_source_id=data_source.id).all()
     assigned_users = [permission.user for permission in permissions]
 
-    if user_id not in [user.id for user in assigned_users]:
+    if user_id not in [user.id for user in assigned_users] and not is_admin:
         flash('You do not have access to this data source.', 'error')
         return redirect(url_for('homepage'))  # or wherever you'd like to redirect
 
@@ -375,7 +377,7 @@ def start_vscode(id):
         vscode_url = launch_vscode_for_user(sanitized_user_id)
         flash('Your VS Code server is being started. Please wait a moment.', 'success')
     except Exception as e:
-        flash(f'An error occurred while starting your VS Code server: {str(e)}', 'error')
+        print(f'An error occurred while starting your VS Code server: {str(e)}', 'error')
         return redirect(url_for('data_source_details', id=id))  # Redirect back to the data source details in case of failure
 
     # Redirect to a waiting page or directly embed the VS Code interface if it's ready
