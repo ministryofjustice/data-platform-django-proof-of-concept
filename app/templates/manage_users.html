@@ -1,0 +1,18 @@
+<!-- manage_users.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Manage Users for {{ data_source.name }}</h1>
+
+<form method="POST">
+    <div>
+        <label for="users">Assign Users:</label>
+        <select name="users" multiple>
+            {% for user in users %}
+            <option value="{{ user.id }}">{{ user.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <input type="submit" value="Assign Users">
+</form>
+{% endblock %}

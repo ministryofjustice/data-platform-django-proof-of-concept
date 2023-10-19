@@ -52,7 +52,7 @@ class UserDataSourcePermission(db.Model):
     assigned_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relationships
-    user = db.relationship("User", backref="user_permissions_backref", lazy=True)
+    user = db.relationship("User", back_populates="permissions")
 
     def __repr__(self):
         return f"<UserDataSourcePermission {self.user_id} - {self.data_source_id}>"
@@ -66,9 +66,7 @@ class User(db.Model):
     email = db.Column(db.String(100), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    permissions = db.relationship(
-        "UserDataSourcePermission", backref="user_info_backref", lazy=True
-    )
+    permissions = db.relationship("UserDataSourcePermission", back_populates="user")
 
     def __repr__(self):
         return f"<User {self.name}>"

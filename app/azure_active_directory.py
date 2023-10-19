@@ -1,5 +1,5 @@
 import requests
-from flask import session, flash
+from flask import flash
 
 
 def create_aad_group(group_name, description, user_id, access_token, dry_run=False):
@@ -88,10 +88,61 @@ def add_user_as_group_admin(group_id, user_id, access_token):
         if response.status_code == 204:  # 204 No Content response means success
             return True
     except requests.exceptions.HTTPError as err:
-        # Handle errors (print them to console or log file, display message to user, etc.)
         print(f"An HTTP error occurred: {err}")
     except Exception as e:
         # Handle any other exceptions
         print(f"An unexpected error occurred: {e}")
 
     return False
+
+
+def add_user_to_aad_group(user_id, group_id, access_token):
+    # Microsoft Graph API endpoint to add a member to the group
+    url = f"https://graph.microsoft.com/v1.0/groups/{group_id}/members/$ref"
+
+    # The headers for the request
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+    }
+
+    # The payload for the request
+    member_data = {
+        "@odata.id": f"https://graph.microsoft.com/v1.0/directoryObjects/{user_id}"
+    }
+
+    try:
+        # Make the request to add the user to the group
+        response = requests.post(url, headers=headers, json=member_data)
+        response.raise_for_status()  # Will raise an HTTPError if the HTTP request returned an unsuccessful status code
+
+        # If the request was successful, return True
+        if response.status_code == 204:  # 204 No Content response means success
+            return True
+    except requests.exceptions.HTTPError as err:
+        # Handle errors (print them to console or log file, display message to user, etc.)
+        print(f"An HTTP error occurred: {err}")
+        print("Response body:", err.response.text)
+        flash("An error occurred while adding the user to the group.", "error")
+    except Exception as e:
+        # Handle any other exceptions
+        print(f"An unexpected error occurred: {e}")
+        flash(
+            "An unexpected error occurred while adding the user to the group.", "error"
+        )
+
+    return False
+
+
+def add_users_to_aad_group(user_ids, group_id, access_token):
+    successful_additions = []
+    failed_additions = []
+
+    for user_id in user_ids:
+        success = add_user_to_aad_group(user_id, group_id, access_token)
+        if success:
+            successful_additions.append(user_id)
+        else:
+            failed_additions.append(user_id)
+
+    return successful_additions, failed_additions

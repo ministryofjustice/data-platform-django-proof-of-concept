@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Data Source Details</title>
+    <!-- You can add CSS or additional meta tags here -->
+</head>
+<body>
+
+<h1>Data Source Details</h1>
+
+<!-- Displaying data source information -->
+<div>
+    <h2>{{ data_source.name }}</h2>
+    <p><strong>Description:</strong> {{ data_source.description }}</p>
+    <p><strong>Created At:</strong> {{ data_source.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p> <!-- Displaying creation time -->
+    <p><strong>Created By:</strong> {{ creator.name }}</p> <!-- Displaying the creator's name -->
+</div>
+
+<!-- Section for displaying users assigned to this data source -->
+<div>
+    <h3>Assigned Users:</h3>
+    {% if assigned_users %}
+        <ul>
+        {% for user in assigned_users %}
+            <li>{{ user.name }} ({{ user.email }})</li> <!-- Displaying user's name and email -->
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No users assigned to this data source.</p>
+    {% endif %}
+</div>
+
+<!-- Link or form for managing users. This part assumes you have a 'manage_users' route set up. -->
+<div>
+    {% if is_admin %}
+    <a href="{{ url_for('manage_users', id=data_source.id) }}">Manage Users</a>
+{% endif %}
+</div>
+
+<!-- Link to go back to the list of data sources -->
+<a href="{{ url_for('list_data_sources') }}">Back to Data Sources List</a>
+
+</body>
+</html>
