@@ -1,9 +1,19 @@
 import uuid
 from kubernetes import client, config, watch
+from kubernetes.config import ConfigException
 import time
 
-# Load the kubeconfig file
-config.load_kube_config()
+try:
+    # Try to load the in-cluster configuration. This works if you're running inside Kubernetes.
+    config.load_incluster_config()
+except ConfigException:
+    # If the in-cluster config doesn't load, try the kubeconfig method.
+    try:
+        config.load_kube_config()
+    except ConfigException:
+
+        print("Could not configure Kubernetes client. This script must be run within a cluster or with access to a valid kubeconfig file.")
+        exit(1)
 
 # Create instances of the API classes
 api_instance = client.CoreV1Api()
