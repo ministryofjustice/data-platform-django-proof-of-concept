@@ -346,7 +346,7 @@ def manage_users(id):
         )
 
 
-@app.route('/datasource/<int:id>/start_vscode')
+@app.route('/datasource/<int:id>/start_vscode', methods=['GET', 'POST'])
 def start_vscode(id):
     # Check if the user is logged in and has access to the data source
     if 'user' not in session:
