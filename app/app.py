@@ -1,4 +1,4 @@
-from flask import Flask, redirect, request, url_for, session, render_template, flash, Response
+from flask import Flask, redirect, request, url_for, session, render_template, flash, Response, jsonify
 from flask_session import Session
 from flask_socketio import SocketIO
 from authlib.integrations.flask_client import OAuth
@@ -235,7 +235,6 @@ def data_source_details(id):
     creator = User.query.get(data_source.created_by)
 
     # Fetch the users assigned to this data source through permissions
-    # This assumes that your UserDataSourcePermission model links back to the User model
     permissions = UserDataSourcePermission.query.filter_by(
         data_source_id=data_source.id
     ).all()
@@ -243,12 +242,42 @@ def data_source_details(id):
 
     # Check if the current user is the admin of the data source
     current_user_id = session.get("user")["id"]
-    is_admin = current_user_id == data_source.created_by
+    is_admin = current_user_id == data_source.created_by  # local check
 
+    # Now, we want to check if the current user is an admin in the AAD group
+    aad_group_id = data_source.aad_group_id  # The ID of the AAD group associated with the data source
+
+    # Prepare the access token for Microsoft Graph API
+    access_token = session.get("access_token")  # The token stored in session after login
+
+    # URL for the Microsoft Graph API endpoint to get the group's owners
+    url = f"https://graph.microsoft.com/v1.0/groups/{aad_group_id}/owners"
+
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+    }
+
+    try:
+        # Make the request to get the group's owners
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()  # Will raise an HTTPError if the HTTP request returned an unsuccessful status code
+
+        # If the request was successful, get the JSON response
+        owners_info = response.json()
+
+        # Check if the user is an owner of the group
+        is_user_aad_group_admin = any(owner.get('id') == current_user_id for owner in owners_info.get('value', []))
+
+    except requests.exceptions.HTTPError as err:
+        print(f"An HTTP error occurred: {err}")
+        return jsonify(error=str(err)), 500  # You can handle the error differently
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return jsonify(error=str(e)), 500  # You can handle the error differently
 
     # Check if the current user has access to the data source
-    user_has_access = any(user.id == current_user_id for user in assigned_users) or is_admin
-
+    user_has_access = any(user.id == current_user_id for user in assigned_users) or is_user_aad_group_admin
 
     # Render the template with the necessary information
     return render_template(
@@ -257,7 +286,7 @@ def data_source_details(id):
         creator=creator,
         assigned_users=assigned_users,
         user=creator,
-        is_admin=is_admin,
+        is_admin=is_user_aad_group_admin,  # Here we use the AAD group check instead of the local one
         user_has_access=user_has_access
     )
 
@@ -397,7 +426,7 @@ def vscode_proxy(path):
     service_name = sanitize_username(user_info['id'])  # Assuming 'id' is the correct key
 
     # Construct the URL of the VS Code server for this user.
-    vscode_url = f"http://{service_name}.dataaccessmanager.svc.cluster.local:8080/{path}"  # Standard Kubernetes DNS for services
+    vscode_url = f"http://{service_name}.dataaccessmanager.svc.cluster.local:8080/{path}"
 
     # Check if it's a WebSocket request
     if request.environ.get('wsgi.websocket'):
