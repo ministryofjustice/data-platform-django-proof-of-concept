@@ -462,7 +462,7 @@ def vscode_proxy():
 
     # Construct the URL of the VS Code server for this user.
     vscode_url = (
-        f"http://vscode-service-{service_name}.dataaccessmanager.svc.cluster.local:80/"
+        f"http://vscode-service-dbe0354c6b5f4bdc8a356af8d4ec68ed.dataaccessmanager.svc.cluster.local/"
     )
     app.logger.info(f"VSCode URL: {vscode_url}")
 
