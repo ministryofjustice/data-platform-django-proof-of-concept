@@ -37,7 +37,7 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 
 app.config["SECRET_KEY"] = secrets["session_secret"]
 app.config["SESSION_TYPE"] = "filesystem"
-app.config['LOGGING_LEVEL'] = logging.INFO
+app.config['LOGGING_LEVEL'] = logging.DEBUG
 
 # Initialize database
 init_app(app)
