@@ -440,9 +440,9 @@ def start_vscode(id):
 
 
 @app.route(
-    "/vscode_proxy/<path:path>", methods=["GET", "POST", "PUT", "DELETE", "PATCH"]
+    "/vscode_proxy", methods=["GET", "POST", "PUT", "DELETE", "PATCH"]
 )
-def vscode_proxy(path):
+def vscode_proxy():
     """
     This route acts as a proxy for the VS Code server, forwarding requests and responses.
     """
