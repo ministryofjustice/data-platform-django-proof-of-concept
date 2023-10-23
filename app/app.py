@@ -447,19 +447,19 @@ def vscode_proxy():
     This route acts as a proxy for the VS Code server, forwarding requests and responses.
     """
 
-    return """<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Debug Page</title>
-</head>
-<body>
-    <h1>You're here</h1>
-</body>
-</html>"""
+#     return """<!DOCTYPE html>
+# <html lang="en">
+# <head>
+#     <meta charset="UTF-8">
+#     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+#     <title>Debug Page</title>
+# </head>
+# <body>
+#     <h1>You're here</h1>
+# </body>
+# </html>"""
 
-    print(f"VSCode Proxy called with path: {path}")
+    print(f"VSCode Proxy called.")
 
     user_info = session.get("user")
     if not user_info:
