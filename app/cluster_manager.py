@@ -67,7 +67,7 @@ def deploy_vscode_server(user_id):
     )
 
     # Define the pod's metadata
-    metadata = client.V1ObjectMeta(name=name)
+    metadata = client.V1ObjectMeta(name=name, labels={"app": name})
 
     # Create the pod specification
     pod = client.V1Pod(api_version="v1", kind="Pod", metadata=metadata, spec=pod_spec)
