@@ -1,4 +1,14 @@
-from flask import Flask, redirect, request, url_for, session, render_template, flash, Response, jsonify
+from flask import (
+    Flask,
+    redirect,
+    request,
+    url_for,
+    session,
+    render_template,
+    flash,
+    Response,
+    jsonify,
+)
 from flask_session import Session
 from flask_socketio import SocketIO
 from authlib.integrations.flask_client import OAuth
@@ -245,10 +255,14 @@ def data_source_details(id):
     is_admin = current_user_id == data_source.created_by  # local check
 
     # Now, we want to check if the current user is an admin in the AAD group
-    aad_group_id = data_source.aad_group_id  # The ID of the AAD group associated with the data source
+    aad_group_id = (
+        data_source.aad_group_id
+    )  # The ID of the AAD group associated with the data source
 
     # Prepare the access token for Microsoft Graph API
-    access_token = session.get("access_token")  # The token stored in session after login
+    access_token = session.get(
+        "access_token"
+    )  # The token stored in session after login
 
     # URL for the Microsoft Graph API endpoint to get the group's owners
     url = f"https://graph.microsoft.com/v1.0/groups/{aad_group_id}/owners"
@@ -267,7 +281,9 @@ def data_source_details(id):
         owners_info = response.json()
 
         # Check if the user is an owner of the group
-        is_user_aad_group_admin = any(owner.get('id') == current_user_id for owner in owners_info.get('value', []))
+        is_user_aad_group_admin = any(
+            owner.get("id") == current_user_id for owner in owners_info.get("value", [])
+        )
 
     except requests.exceptions.HTTPError as err:
         print(f"An HTTP error occurred: {err}")
@@ -277,7 +293,10 @@ def data_source_details(id):
         return jsonify(error=str(e)), 500  # You can handle the error differently
 
     # Check if the current user has access to the data source
-    user_has_access = any(user.id == current_user_id for user in assigned_users) or is_user_aad_group_admin
+    user_has_access = (
+        any(user.id == current_user_id for user in assigned_users)
+        or is_user_aad_group_admin
+    )
 
     # Render the template with the necessary information
     return render_template(
@@ -287,7 +306,7 @@ def data_source_details(id):
         assigned_users=assigned_users,
         user=creator,
         is_admin=is_user_aad_group_admin,  # Here we use the AAD group check instead of the local one
-        user_has_access=user_has_access
+        user_has_access=user_has_access,
     )
 
 
@@ -375,15 +394,15 @@ def manage_users(id):
         )
 
 
-@app.route('/datasource/<int:id>/start_vscode', methods=['GET', 'POST'])
+@app.route("/datasource/<int:id>/start_vscode", methods=["GET", "POST"])
 def start_vscode(id):
     # Check if the user is logged in and has access to the data source
-    if 'user' not in session:
-        flash('You must be logged in to access this feature.', 'error')
-        return redirect(url_for('login'))
+    if "user" not in session:
+        flash("You must be logged in to access this feature.", "error")
+        return redirect(url_for("login"))
 
-    user_info = session.get('user')
-    user_id = user_info.get('id')  # Or however you've structured your session/user info
+    user_info = session.get("user")
+    user_id = user_info.get("id")  # Or however you've structured your session/user info
 
     # Fetch the data source from the database
     data_source = DataSource.query.get_or_404(id)
@@ -392,48 +411,68 @@ def start_vscode(id):
     current_user_id = session.get("user")["id"]
     is_admin = current_user_id == data_source.created_by
 
-    permissions = UserDataSourcePermission.query.filter_by(data_source_id=data_source.id).all()
+    permissions = UserDataSourcePermission.query.filter_by(
+        data_source_id=data_source.id
+    ).all()
     assigned_users = [permission.user for permission in permissions]
 
     if user_id not in [user.id for user in assigned_users] and not is_admin:
-        flash('You do not have access to this data source.', 'error')
-        return redirect(url_for('homepage'))  # or wherever you'd like to redirect
+        flash("You do not have access to this data source.", "error")
+        return redirect(url_for("homepage"))  # or wherever you'd like to redirect
 
     sanitized_user_id = sanitize_username(user_id)
 
     # Start the VS Code server for the user
     try:
         vscode_url = launch_vscode_for_user(sanitized_user_id)
-        flash('Your VS Code server is being started. Please wait a moment.', 'success')
+        flash("Your VS Code server is being started. Please wait a moment.", "success")
     except Exception as e:
-        print(f'An error occurred while starting your VS Code server: {str(e)}', 'error')
-        return redirect(url_for('data_source_details', id=id))  # Redirect back to the data source details in case of failure
+        print(
+            f"An error occurred while starting your VS Code server: {str(e)}", "error"
+        )
+        return redirect(
+            url_for("data_source_details", id=id)
+        )  # Redirect back to the data source details in case of failure
 
     # Redirect to a waiting page or directly embed the VS Code interface if it's ready
     # The implementation of this part can vary based on how you handle the VS Code UI embedding
-    return render_template('vscode.html')
+    return render_template("vscode.html")
 
-@app.route('/vscode_proxy/<path:path>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])
+
+@app.route(
+    "/vscode_proxy/<path:path>", methods=["GET", "POST", "PUT", "DELETE", "PATCH"]
+)
 def vscode_proxy(path):
     """
     This route acts as a proxy for the VS Code server, forwarding requests and responses.
     """
-    user_info = session.get('user')
+    app.logger.info(f"VSCode Proxy called with path: {path}")
+
+    user_info = session.get("user")
     if not user_info:
+        app.logger.warning("User is not logged in")
         return "User is not logged in", 403  # or redirect to login page
 
     # Retrieve the service name for the user's VS Code server based on the user's ID.
-    service_name = sanitize_username(user_info['id'])  # Assuming 'id' is the correct key
+    service_name = sanitize_username(
+        user_info["id"]
+    )  # Assuming 'id' is the correct key
+    app.logger.info(f"Service name: {service_name}")
 
     # Construct the URL of the VS Code server for this user.
-    vscode_url = f"http://vscode-server-{service_name}.dataaccessmanager.svc.cluster.local:8080/{path}"
+    vscode_url = (
+        f"http://{service_name}.dataaccessmanager.svc.cluster.local:8080/{path}"
+    )
+    app.logger.info(f"VSCode URL: {vscode_url}")
 
     # Check if it's a WebSocket request
-    if request.environ.get('wsgi.websocket'):
-        ws_frontend = request.environ['wsgi.websocket']
+    if request.environ.get("wsgi.websocket"):
+        app.logger.info("WebSocket request detected")
+        ws_frontend = request.environ["wsgi.websocket"]
         ws_backend = create_backend_websocket(vscode_url)
 
         if not ws_backend:
+            app.logger.error("Failed to connect to VS Code server via WebSocket")
             return "Failed to connect to VS Code server", 502
 
         try:
@@ -446,7 +485,9 @@ def vscode_proxy(path):
                     break
 
                 # Forward message from backend to frontend
-                message = ws_backend.recv()  # Using recv() method from 'websocket-client' library
+                message = (
+                    ws_backend.recv()
+                )  # Using recv() method from 'websocket-client' library
                 if message is not None:
                     ws_frontend.send(message)
                 else:
@@ -462,8 +503,9 @@ def vscode_proxy(path):
         return "", 204  # No Content response for WebSocket route
 
     else:
+        app.logger.info("HTTP request detected")
         # For non-WebSocket requests, forward the request as is and return the response
-        headers = {key: value for (key, value) in request.headers if key != 'Host'}
+        headers = {key: value for (key, value) in request.headers if key != "Host"}
         try:
             response = requests.request(
                 method=request.method,
@@ -471,7 +513,8 @@ def vscode_proxy(path):
                 headers=headers,
                 data=request.get_data(),
                 cookies=request.cookies,
-                allow_redirects=False)
+                allow_redirects=False,
+            )
 
             # Forward the response back to the client
             headers = [(name, value) for (name, value) in response.raw.headers.items()]
@@ -481,8 +524,6 @@ def vscode_proxy(path):
         except RequestException as e:
             app.logger.error(f"Request failed: {e}")
             return "Proxy request failed", 502  # Bad Gateway error
-
-
 
 
 @app.route("/logout")
@@ -510,6 +551,7 @@ def check_if_user_is_admin(group_ids):
 
     return is_user_admin
 
+
 # Helper function to create a WebSocket client connected to the backend.
 def create_backend_websocket(vscode_url):
     """
@@ -522,11 +564,12 @@ def create_backend_websocket(vscode_url):
         app.logger.error(f"WebSocket creation failed: {e}")
         return None
 
+
 # # Run the Flask application
 # if __name__ == "__main__":
 #     app.run(host="0.0.0.0", port=5000)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Use gevent WebSocket server to run the app instead of the standard Flask server
-    http_server = WSGIServer(('127.0.0.1', 5000), app, handler_class=WebSocketHandler)
+    http_server = WSGIServer(("127.0.0.1", 5000), app, handler_class=WebSocketHandler)
     http_server.serve_forever()
