@@ -426,7 +426,7 @@ def vscode_proxy(path):
     service_name = sanitize_username(user_info['id'])  # Assuming 'id' is the correct key
 
     # Construct the URL of the VS Code server for this user.
-    vscode_url = f"http://{service_name}.dataaccessmanager.svc.cluster.local:8080/{path}"
+    vscode_url = f"http://vscode-server-{service_name}.dataaccessmanager.svc.cluster.local:8080/{path}"
 
     # Check if it's a WebSocket request
     if request.environ.get('wsgi.websocket'):
