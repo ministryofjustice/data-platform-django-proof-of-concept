@@ -442,37 +442,40 @@ def start_vscode(id):
 @app.route(
     "/vscode_proxy/<path:path>", methods=["GET", "POST", "PUT", "DELETE", "PATCH"]
 )
+@app.route(
+    "/vscode_proxy/<path:path>", methods=["GET", "POST", "PUT", "DELETE", "PATCH"]
+)
 def vscode_proxy(path):
     """
     This route acts as a proxy for the VS Code server, forwarding requests and responses.
     """
-    app.logger.info(f"VSCode Proxy called with path: {path}")
+    print(f"VSCode Proxy called with path: {path}")
 
     user_info = session.get("user")
     if not user_info:
-        app.logger.warning("User is not logged in")
+        print("User is not logged in")
         return "User is not logged in", 403  # or redirect to login page
 
     # Retrieve the service name for the user's VS Code server based on the user's ID.
     service_name = sanitize_username(
         user_info["id"]
     )  # Assuming 'id' is the correct key
-    app.logger.info(f"Service name: {service_name}")
+    print(f"Service name: {service_name}")
 
     # Construct the URL of the VS Code server for this user.
     vscode_url = (
         f"http://{service_name}.dataaccessmanager.svc.cluster.local:8080/{path}"
     )
-    app.logger.info(f"VSCode URL: {vscode_url}")
+    print(f"VSCode URL: {vscode_url}")
 
     # Check if it's a WebSocket request
     if request.environ.get("wsgi.websocket"):
-        app.logger.info("WebSocket request detected")
+        print("WebSocket request detected")
         ws_frontend = request.environ["wsgi.websocket"]
         ws_backend = create_backend_websocket(vscode_url)
 
         if not ws_backend:
-            app.logger.error("Failed to connect to VS Code server via WebSocket")
+            print("Failed to connect to VS Code server via WebSocket")
             return "Failed to connect to VS Code server", 502
 
         try:
@@ -494,7 +497,7 @@ def vscode_proxy(path):
                     break
 
         except WebSocketError as e:
-            app.logger.error(f"WebSocket communication failed: {e}")
+            print(f"WebSocket communication failed: {e}")
             return "WebSocket communication failed", 500
 
         finally:
@@ -503,7 +506,7 @@ def vscode_proxy(path):
         return "", 204  # No Content response for WebSocket route
 
     else:
-        app.logger.info("HTTP request detected")
+        print("HTTP request detected")
         # For non-WebSocket requests, forward the request as is and return the response
         headers = {key: value for (key, value) in request.headers if key != "Host"}
         try:
@@ -522,7 +525,7 @@ def vscode_proxy(path):
             return proxy_response
 
         except RequestException as e:
-            app.logger.error(f"Request failed: {e}")
+            print(f"Request failed: {e}")
             return "Proxy request failed", 502  # Bad Gateway error
 
 
