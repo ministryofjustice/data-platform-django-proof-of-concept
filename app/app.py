@@ -23,7 +23,6 @@ from gevent.pywsgi import WSGIServer
 from geventwebsocket.handler import WebSocketHandler
 from geventwebsocket import WebSocketError
 import websocket
-import logging
 
 # Load secrets from a JSON file
 with open("secrets.json") as f:
@@ -37,7 +36,7 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 
 app.config["SECRET_KEY"] = secrets["session_secret"]
 app.config["SESSION_TYPE"] = "filesystem"
-app.config['LOGGING_LEVEL'] = logging.DEBUG
+app.config['LOGGING_LEVEL'] = 10
 
 # Initialize database
 init_app(app)
