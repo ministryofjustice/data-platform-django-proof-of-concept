@@ -442,13 +442,23 @@ def start_vscode(id):
 @app.route(
     "/vscode_proxy/<path:path>", methods=["GET", "POST", "PUT", "DELETE", "PATCH"]
 )
-@app.route(
-    "/vscode_proxy/<path:path>", methods=["GET", "POST", "PUT", "DELETE", "PATCH"]
-)
 def vscode_proxy(path):
     """
     This route acts as a proxy for the VS Code server, forwarding requests and responses.
     """
+
+    return """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Page</title>
+</head>
+<body>
+    <h1>You're here</h1>
+</body>
+</html>"""
+
     print(f"VSCode Proxy called with path: {path}")
 
     user_info = session.get("user")
