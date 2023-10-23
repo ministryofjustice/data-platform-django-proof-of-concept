@@ -8,6 +8,7 @@ from flask import (
     flash,
     Response,
     jsonify,
+    logging
 )
 from flask_session import Session
 from flask_socketio import SocketIO
@@ -36,6 +37,7 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 
 app.config["SECRET_KEY"] = secrets["session_secret"]
 app.config["SESSION_TYPE"] = "filesystem"
+app.config['LOGGING_LEVEL'] = logging.INFO
 
 # Initialize database
 init_app(app)
