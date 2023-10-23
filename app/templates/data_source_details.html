@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Data Source Details</title>
     <!-- You can add CSS or additional meta tags here -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>  <!-- Include jQuery -->
 </head>
 <body>
 
@@ -41,10 +42,19 @@
 <!-- Check if the user has the necessary permissions to launch VS Code -->
 {% if is_admin or user_has_access %}
     <!-- Button to launch VS Code -->
-    <form action="{{ url_for('start_vscode', id=data_source.id) }}" method="post">
-        <input type="submit" value="Launch VS Code">
-    </form>
+    <button onclick="launchVSCode()">Launch VS Code</button>
 {% endif %}
+
+<script type="text/javascript">
+    function launchVSCode() {
+        // Send an AJAX POST request to start_vscode
+        $.post("{{ url_for('start_vscode', id=data_source.id) }}", function() {
+            // On success, open the vscode_proxy URL in a new tab
+            var url = "{{ url_for('vscode_proxy') }}";
+            window.open(url, '_blank');
+        });
+    }
+</script>
 
 <!-- Link to go back to the list of data sources -->
 <a href="{{ url_for('list_data_sources') }}">Back to Data Sources List</a>
