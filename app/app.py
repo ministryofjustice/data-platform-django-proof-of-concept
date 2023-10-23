@@ -8,7 +8,6 @@ from flask import (
     flash,
     Response,
     jsonify,
-    logging
 )
 from flask_session import Session
 from flask_socketio import SocketIO
@@ -24,6 +23,7 @@ from gevent.pywsgi import WSGIServer
 from geventwebsocket.handler import WebSocketHandler
 from geventwebsocket import WebSocketError
 import websocket
+import logging
 
 # Load secrets from a JSON file
 with open("secrets.json") as f:
