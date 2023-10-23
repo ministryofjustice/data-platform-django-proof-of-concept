@@ -437,7 +437,9 @@ def start_vscode(id):
 
     # Redirect to a waiting page or directly embed the VS Code interface if it's ready
     # The implementation of this part can vary based on how you handle the VS Code UI embedding
-    return render_template("vscode.html")
+    # return render_template("vscode.html")
+    vscode_url = url_for('vscode_proxy', _external=True)
+    return redirect(vscode_url)
 
 
 @app.route(
