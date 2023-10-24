@@ -33,20 +33,25 @@ def create_service_account(user_id):
     sanitized_user_id = sanitize_username(user_id)
     name = f"vscode-sa-{sanitized_user_id}"
 
-    # Define the service account with the IRSA role annotation
-    body = client.V1ServiceAccount(
-        metadata=client.V1ObjectMeta(
-            name=name,
-            annotations={
-                # Replace with your actual ARN for the IAM role
-                "eks.amazonaws.com/role-arn": "arn:aws:iam::123456789012:role/role-name"
-            },
-        )
-    )
-
-    # Create the service account in the specified namespace
-    api_instance.create_namespaced_service_account(namespace, body)
-
+    try:
+        # Check if the service account already exists
+        api_instance.read_namespaced_service_account(name, namespace)
+        print(f"Service account {name} already exists.", flush=True)
+    except client.rest.ApiException as e:
+        if e.status == 404:
+            # Service account doesn't exist, create it
+            body = client.V1ServiceAccount(
+                metadata=client.V1ObjectMeta(
+                    name=name,
+                    annotations={
+                        "eks.amazonaws.com/role-arn": "arn:aws:iam::123456789012:role/role-name"
+                    },
+                )
+            )
+            api_instance.create_namespaced_service_account(namespace, body)
+            print(f"Created service account {name}.", flush=True)
+        else:
+            print(f"Failed to check service account {name}: {e}", flush=True)
 
 def deploy_vscode_server(user_id):
     namespace = "dataaccessmanager"
@@ -54,51 +59,57 @@ def deploy_vscode_server(user_id):
     name = f"vscode-server-{sanitized_user_id}"
     service_account_name = f"vscode-sa-{sanitized_user_id}"
 
-    # Define the pod spec with the associated service account
-    pod_spec = client.V1PodSpec(
-        service_account_name=service_account_name,
-        containers=[
-            client.V1Container(
-                name="vscode-server",
-                image="codercom/code-server:latest",
-                ports=[client.V1ContainerPort(container_port=8080)],
+    try:
+        # Check if the pod already exists
+        api_instance.read_namespaced_pod(name, namespace)
+        print(f"Pod {name} already exists.", flush=True)
+    except client.rest.ApiException as e:
+        if e.status == 404:
+            # Pod doesn't exist, create it
+            pod_spec = client.V1PodSpec(
+                service_account_name=service_account_name,
+                containers=[
+                    client.V1Container(
+                        name="vscode-server",
+                        image="codercom/code-server:latest",
+                        ports=[client.V1ContainerPort(container_port=8080)],
+                    )
+                ],
             )
-        ],
-    )
-
-    # Define the pod's metadata
-    metadata = client.V1ObjectMeta(name=name, labels={"app": name})
-
-    # Create the pod specification
-    pod = client.V1Pod(api_version="v1", kind="Pod", metadata=metadata, spec=pod_spec)
-
-    # Deploy the pod in Kubernetes
-    api_instance.create_namespaced_pod(namespace, pod)
-
+            metadata = client.V1ObjectMeta(name=name, labels={"app": name})
+            pod = client.V1Pod(api_version="v1", kind="Pod", metadata=metadata, spec=pod_spec)
+            api_instance.create_namespaced_pod(namespace, pod)
+            print(f"Deployed pod {name}.", flush=True)
+        else:
+            print(f"Failed to check pod {name}: {e}", flush=True)
 
 def create_service_for_vscode(user_id):
     namespace = "dataaccessmanager"
     sanitized_user_id = sanitize_username(user_id)
     name = f"vscode-service-{sanitized_user_id}"
 
-    # Define the service's spec
-    spec = client.V1ServiceSpec(
-        selector={"app": f"vscode-server-{sanitized_user_id}"},
-        ports=[client.V1ServicePort(protocol="TCP", port=80, target_port=8080)],
-        type="ClusterIP",
-    )
-
-    # Create the service specification
-    service = client.V1Service(
-        api_version="v1",
-        kind="Service",
-        metadata=client.V1ObjectMeta(name=name),
-        spec=spec,
-    )
-
-    # Create the service in Kubernetes
-    api_instance.create_namespaced_service(namespace, service)
-
+    try:
+        # Check if the service already exists
+        api_instance.read_namespaced_service(name, namespace)
+        print(f"Service {name} already exists.", flush=True)
+    except client.rest.ApiException as e:
+        if e.status == 404:
+            # Service doesn't exist, create it
+            spec = client.V1ServiceSpec(
+                selector={"app": f"vscode-server-{sanitized_user_id}"},
+                ports=[client.V1ServicePort(protocol="TCP", port=80, target_port=8080)],
+                type="ClusterIP",
+            )
+            service = client.V1Service(
+                api_version="v1",
+                kind="Service",
+                metadata=client.V1ObjectMeta(name=name),
+                spec=spec,
+            )
+            api_instance.create_namespaced_service(namespace, service)
+            print(f"Created service {name}.", flush=True)
+        else:
+            print(f"Failed to check service {name}: {e}", flush=True)
 
 def wait_for_pod_ready(namespace, pod_name):
     # Create a watch object for Pod events
