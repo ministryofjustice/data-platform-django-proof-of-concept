@@ -127,12 +127,14 @@ def wait_for_service_ready(service_url, timeout=300):
         try:
             response = requests.get(service_url, timeout=5)
             if response.status_code == 200:
+                print("VSCODE Service is ready",flush=True)
                 # Service is ready
                 return True
         except requests.RequestException as e:
             print(f"Request failed: {e}")
         # Wait for a while before retrying
         time.sleep(5)
+        print("VSCODE Service is NOT ready",flush=True)
     return False  # Timeout reached
 
 def launch_vscode_for_user(user_id):
