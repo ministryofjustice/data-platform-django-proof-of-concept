@@ -19,7 +19,7 @@ def create_aad_group(group_name, description, user_id, access_token, dry_run=Fal
         "mailEnabled": False,
         "mailNickname": group_name.replace(" ", "").lower(),
         "securityEnabled": False,  # Unified groups are not security groups
-        "visibility": "Private",  # Setting the group as a private group
+        # "visibility": "Private",  # Setting the group as a private group
     }
 
     # If dry_run is enabled, we skip the actual creation process
@@ -46,6 +46,7 @@ def create_aad_group(group_name, description, user_id, access_token, dry_run=Fal
                 flash("User added as an admin to the group successfully!", "success")
             else:
                 flash("Failed to add the user as an admin to the group.", "error")
+                print("Failed to add the user as an admin to the group.", "error")
         else:
             flash(
                 "Group was created but user could not be added as an admin.", "warning"
