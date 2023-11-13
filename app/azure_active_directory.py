@@ -12,13 +12,14 @@ def create_aad_group(group_name, description, user_id, access_token, dry_run=Fal
         "Content-Type": "application/json",
     }
 
-    # The payload for the request
+    # The payload for the request, setting 'visibility' to 'Private' to make a private group
     group_data = {
         "displayName": group_name,
         "description": description,
         "mailEnabled": False,
         "mailNickname": group_name.replace(" ", "").lower(),
-        "securityEnabled": True,
+        "securityEnabled": False,  # Unified groups are not security groups
+        "visibility": "Private",  # Setting the group as a private group
     }
 
     # If dry_run is enabled, we skip the actual creation process
@@ -62,6 +63,40 @@ def create_aad_group(group_name, description, user_id, access_token, dry_run=Fal
         flash("An unexpected error occurred while creating the group.", "error")
 
     return None
+
+
+def create_team_from_group(group_id, access_token):
+    url = f"https://graph.microsoft.com/v1.0/groups/{group_id}/team"
+
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+    }
+
+    team_data = {
+        "memberSettings": {"allowCreateUpdateChannels": True},
+        "messagingSettings": {
+            "allowUserEditMessages": True,
+            "allowUserDeleteMessages": True,
+        },
+        "funSettings": {"allowGiphy": True, "giphyContentRating": "Moderate"},
+    }
+
+    try:
+        response = requests.put(
+            url, headers=headers, json=team_data
+        )  # Using PUT as per Graph API documentation for creating team from group
+        response.raise_for_status()
+        # If the request was successful, get the JSON response
+        return response.json()
+    except requests.exceptions.HTTPError as err:
+        print(f"An HTTP error occurred: {err}")
+        flash("An error occurred while creating the team.", "error")
+        return None
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        flash("An unexpected error occurred while creating the team.", "error")
+        return None
 
 
 def add_user_as_group_admin(group_id, user_id, access_token):

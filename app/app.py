@@ -16,7 +16,11 @@ import requests
 import json
 from models import init_app, db, DataSource, UserDataSourcePermission, User
 from forms import DataSourceForm
-from azure_active_directory import create_aad_group, add_users_to_aad_group
+from azure_active_directory import (
+    create_aad_group,
+    add_users_to_aad_group,
+    create_team_from_group,
+)
 from cluster_manager import launch_vscode_for_user, sanitize_username
 from requests.exceptions import RequestException
 from gevent.pywsgi import WSGIServer
@@ -36,7 +40,7 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 
 app.config["SECRET_KEY"] = secrets["session_secret"]
 app.config["SESSION_TYPE"] = "filesystem"
-app.config['LOGGING_LEVEL'] = 10
+app.config["LOGGING_LEVEL"] = 10
 
 # Initialize database
 init_app(app)
@@ -197,6 +201,25 @@ def create_data_source():
             flash(
                 "Data source and associated AAD group created successfully!", "success"
             )
+
+            team_creation_response = create_team_from_group(
+                group_id=aad_group_id,
+                access_token=session.get("token").get("access_token"),
+            )
+            if team_creation_response:
+                team_info = team_creation_response.json()
+                team_id = team_info.get("id")
+                if team_id:
+                    data_source.team_id = team_id
+                    db.session.commit()
+                    flash(
+                        "Team created and associated with data source successfully!",
+                        "success",
+                    )
+                else:
+                    flash("Failed to extract team ID from the response.", "error")
+            else:  # If there was an error
+                flash("Failed to create the team.", "error")
         else:
             flash("Failed to create AAD group.", "error")
 
@@ -438,13 +461,11 @@ def start_vscode(id):
     # Redirect to a waiting page or directly embed the VS Code interface if it's ready
     # The implementation of this part can vary based on how you handle the VS Code UI embedding
     # return render_template("vscode.html")
-    vscode_url = url_for('vscode_proxy')
+    vscode_url = url_for("vscode_proxy")
     return redirect(vscode_url)
 
 
-@app.route(
-    "/vscode_proxy", methods=["GET", "POST", "PUT", "DELETE", "PATCH"]
-)
+@app.route("/vscode_proxy", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
 def vscode_proxy():
     """
     This route acts as a proxy for the VS Code server, forwarding requests and responses.
@@ -464,9 +485,7 @@ def vscode_proxy():
     app.logger.info(f"Service name: {service_name}")
 
     # Construct the URL of the VS Code server for this user.
-    vscode_url = (
-        f"http://vscode-service-dbe0354c6b5f4bdc8a356af8d4ec68ed.dataaccessmanager.svc.cluster.local/"
-    )
+    vscode_url = f"http://vscode-service-dbe0354c6b5f4bdc8a356af8d4ec68ed.dataaccessmanager.svc.cluster.local/"
     app.logger.info(f"VSCode URL: {vscode_url}")
 
     # Check if it's a WebSocket request

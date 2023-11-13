@@ -53,6 +53,7 @@ def create_service_account(user_id):
         else:
             print(f"Failed to check service account {name}: {e}", flush=True)
 
+
 def deploy_vscode_server(user_id):
     namespace = "dataaccessmanager"
     sanitized_user_id = sanitize_username(user_id)
@@ -77,11 +78,14 @@ def deploy_vscode_server(user_id):
                 ],
             )
             metadata = client.V1ObjectMeta(name=name, labels={"app": name})
-            pod = client.V1Pod(api_version="v1", kind="Pod", metadata=metadata, spec=pod_spec)
+            pod = client.V1Pod(
+                api_version="v1", kind="Pod", metadata=metadata, spec=pod_spec
+            )
             api_instance.create_namespaced_pod(namespace, pod)
             print(f"Deployed pod {name}.", flush=True)
         else:
             print(f"Failed to check pod {name}: {e}", flush=True)
+
 
 def create_service_for_vscode(user_id):
     namespace = "dataaccessmanager"
@@ -111,6 +115,7 @@ def create_service_for_vscode(user_id):
         else:
             print(f"Failed to check service {name}: {e}", flush=True)
 
+
 def wait_for_pod_ready(namespace, pod_name):
     # Create a watch object for Pod events
     w = watch.Watch()
@@ -126,6 +131,7 @@ def wait_for_pod_ready(namespace, pod_name):
 
     return False  # Default case, though your logic might differ based on how you want to handle timeouts
 
+
 def wait_for_service_ready(service_url, timeout=300):
     """
     Wait for the service to become ready by sending requests to the service URL.
@@ -138,15 +144,16 @@ def wait_for_service_ready(service_url, timeout=300):
         try:
             response = requests.get(service_url, timeout=5)
             if response.status_code == 200:
-                print("VSCODE Service is ready",flush=True)
+                print("VSCODE Service is ready", flush=True)
                 # Service is ready
                 return True
         except requests.RequestException as e:
             print(f"Request failed: {e}")
         # Wait for a while before retrying
         time.sleep(5)
-        print("VSCODE Service is NOT ready",flush=True)
+        print("VSCODE Service is NOT ready", flush=True)
     return False  # Timeout reached
+
 
 def launch_vscode_for_user(user_id):
     # Step 1: Create a service account for the user
@@ -164,7 +171,9 @@ def launch_vscode_for_user(user_id):
     namespace = "dataaccessmanager"
 
     # if wait_for_pod_ready(namespace, pod_name):
-    if wait_for_service_ready(service_url="http://vscode-service-dbe0354c6b5f4bdc8a356af8d4ec68ed.dataaccessmanager.svc.cluster.local/"):
+    if wait_for_service_ready(
+        service_url="http://vscode-service-dbe0354c6b5f4bdc8a356af8d4ec68ed.dataaccessmanager.svc.cluster.local/"
+    ):
         print("VS Code server is ready for use.")
     else:
         print("There was a problem starting the VS Code server.")
