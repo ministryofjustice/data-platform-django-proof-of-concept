@@ -18,8 +18,8 @@ def create_aad_group(group_name, description, user_id, access_token, dry_run=Fal
         "description": description,
         "mailEnabled": False,
         "mailNickname": group_name.replace(" ", "").lower(),
-        "securityEnabled": False,  # Unified groups are not security groups
-        # "visibility": "Private",  # Setting the group as a private group
+        "securityEnabled": True,
+        "visibility": "Private",  # Setting the group as a private group
     }
 
     # If dry_run is enabled, we skip the actual creation process
