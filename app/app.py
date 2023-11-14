@@ -329,8 +329,9 @@ def data_source_details(id):
         creator=creator,
         assigned_users=assigned_users,
         user=creator,
-        is_admin=is_user_aad_group_admin,  # Here we use the AAD group check instead of the local one
+        is_admin=is_user_aad_group_admin,
         user_has_access=user_has_access,
+        team_id=data_source.team_id,
     )
 
 

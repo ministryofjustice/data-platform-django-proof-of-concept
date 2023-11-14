@@ -30,7 +30,7 @@ class DataSource(db.Model):
     )
     created_by = db.Column(db.String(255), db.ForeignKey("users.id"))
     aad_group_id = db.Column(db.String(255), unique=True)
-    teams_id = db.Column(db.String(255), unique=True)
+    team_id = db.Column(db.String(255), unique=True)
 
     # Relationships
     permissions = db.relationship(
