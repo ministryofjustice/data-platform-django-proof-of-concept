@@ -208,6 +208,7 @@ def create_data_source():
             )
             if team_creation_response:
                 team_info = team_creation_response.json()
+                print(f"Team Info: %s", team_info)
                 team_id = team_info.get("id")
                 if team_id:
                     data_source.team_id = team_id
