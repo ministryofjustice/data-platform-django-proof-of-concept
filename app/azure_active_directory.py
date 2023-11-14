@@ -16,9 +16,10 @@ def create_aad_group(group_name, description, user_id, access_token, dry_run=Fal
     group_data = {
         "displayName": group_name,
         "description": description,
-        "mailEnabled": False,
+        "groupTypes": ["Unified"],
+        "mailEnabled": True,
         "mailNickname": group_name.replace(" ", "").lower(),
-        "securityEnabled": True,
+        "securityEnabled": False,
         "visibility": "Private",  # Setting the group as a private group
     }
 
