@@ -164,7 +164,7 @@ cython_debug/
 #.idea/
 
 # aad secrets
-secrets.json
+secrets*.json
 
 # IDE
 **/*.vscode

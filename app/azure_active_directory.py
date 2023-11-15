@@ -1,5 +1,9 @@
 import requests
 from flask import flash
+import functools
+import time
+
+print = functools.partial(print, flush=True) # redefine to flush the buffer always
 
 
 def create_aad_group(group_name, description, user_id, access_token, dry_run=False):
@@ -12,13 +16,15 @@ def create_aad_group(group_name, description, user_id, access_token, dry_run=Fal
         "Content-Type": "application/json",
     }
 
-    # The payload for the request
+    # The payload for the request, setting 'visibility' to 'Private' to make a private group
     group_data = {
         "displayName": group_name,
         "description": description,
-        "mailEnabled": False,
+        "groupTypes": ["Unified"],
+        "mailEnabled": True,
         "mailNickname": group_name.replace(" ", "").lower(),
-        "securityEnabled": True,
+        "securityEnabled": False,
+        "visibility": "Private",  # Setting the group as a private group
     }
 
     # If dry_run is enabled, we skip the actual creation process
@@ -45,6 +51,7 @@ def create_aad_group(group_name, description, user_id, access_token, dry_run=Fal
                 flash("User added as an admin to the group successfully!", "success")
             else:
                 flash("Failed to add the user as an admin to the group.", "error")
+                print("Failed to add the user as an admin to the group.", "error")
         else:
             flash(
                 "Group was created but user could not be added as an admin.", "warning"
@@ -62,6 +69,49 @@ def create_aad_group(group_name, description, user_id, access_token, dry_run=Fal
         flash("An unexpected error occurred while creating the group.", "error")
 
     return None
+
+
+def create_team_from_group(group_id, access_token):
+    url = f"https://graph.microsoft.com/v1.0/groups/{group_id}/team"
+
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+    }
+
+    team_data = {
+        "memberSettings": {"allowCreateUpdateChannels": True},
+        "messagingSettings": {
+            "allowUserEditMessages": True,
+            "allowUserDeleteMessages": True,
+        },
+        "funSettings": {"allowGiphy": True, "giphyContentRating": "Moderate"},
+    }
+
+    retry_count = 0
+    max_retries = 5
+    backoff_time = 10  # seconds
+
+    while retry_count < max_retries:
+
+        try:
+            response = requests.put(
+                url, headers=headers, json=team_data
+            )  # Using PUT as per Graph API documentation for creating team from group
+            response.raise_for_status()
+            # If the request was successful, get the JSON response
+            return response
+        except requests.exceptions.HTTPError as err:
+            print(f"HTTP Error {err} encountered...")
+            if response.status_code == 404 and retry_count < max_retries - 1:
+                print(f"404 error encountered, retrying in {backoff_time} seconds...")
+                time.sleep(backoff_time)
+                retry_count += 1
+                continue
+        except Exception as e:
+            print(f"An unexpected error occurred: {e}")
+            flash("An unexpected error occurred while creating the team.", "error")
+            return None
 
 
 def add_user_as_group_admin(group_id, user_id, access_token):
