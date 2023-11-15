@@ -24,7 +24,7 @@ def create_aad_group(group_name, description, user_id, access_token, dry_run=Fal
         "mailEnabled": True,
         "mailNickname": group_name.replace(" ", "").lower(),
         "securityEnabled": False,
-        "visibility": "Public",  # Setting the group as a private group
+        "visibility": "Private",  # Setting the group as a private group
     }
 
     # If dry_run is enabled, we skip the actual creation process
