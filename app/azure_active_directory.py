@@ -1,6 +1,7 @@
 import requests
 from flask import flash
 import functools
+import time
 
 print = functools.partial(print, flush=True) # redefine to flush the buffer always
 
@@ -87,21 +88,30 @@ def create_team_from_group(group_id, access_token):
         "funSettings": {"allowGiphy": True, "giphyContentRating": "Moderate"},
     }
 
-    try:
-        response = requests.put(
-            url, headers=headers, json=team_data
-        )  # Using PUT as per Graph API documentation for creating team from group
-        response.raise_for_status()
-        # If the request was successful, get the JSON response
-        return response.json()
-    except requests.exceptions.HTTPError as err:
-        print(f"An HTTP error occurred: {err}")
-        flash("An error occurred while creating the team.", "error")
-        return None
-    except Exception as e:
-        print(f"An unexpected error occurred: {e}")
-        flash("An unexpected error occurred while creating the team.", "error")
-        return None
+    retry_count = 0
+    max_retries = 5
+    backoff_time = 10  # seconds
+
+    while retry_count < max_retries:
+
+        try:
+            response = requests.put(
+                url, headers=headers, json=team_data
+            )  # Using PUT as per Graph API documentation for creating team from group
+            response.raise_for_status()
+            # If the request was successful, get the JSON response
+            return response.json()
+        except requests.exceptions.HTTPError as err:
+            print(f"HTTP Error {err} encountered...")
+            if response.status_code == 404 and retry_count < max_retries - 1:
+                print(f"404 error encountered, retrying in {backoff_time} seconds...")
+                time.sleep(backoff_time)
+                retry_count += 1
+                continue
+        except Exception as e:
+            print(f"An unexpected error occurred: {e}")
+            flash("An unexpected error occurred while creating the team.", "error")
+            return None
 
 
 def add_user_as_group_admin(group_id, user_id, access_token):
