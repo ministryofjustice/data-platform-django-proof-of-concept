@@ -27,6 +27,9 @@ from gevent.pywsgi import WSGIServer
 from geventwebsocket.handler import WebSocketHandler
 from geventwebsocket import WebSocketError
 import websocket
+import functools
+
+print = functools.partial(print, flush=True) # redefine to flush the buffer always
 
 # Load secrets from a JSON file
 with open("secrets.json") as f:

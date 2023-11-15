@@ -1,5 +1,8 @@
 import requests
 from flask import flash
+import functools
+
+print = functools.partial(print, flush=True) # redefine to flush the buffer always
 
 
 def create_aad_group(group_name, description, user_id, access_token, dry_run=False):
