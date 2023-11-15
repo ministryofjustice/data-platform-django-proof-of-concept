@@ -214,15 +214,18 @@ def create_data_source():
                 team_info = team_creation_response.json()
                 print(f"Team Info: %s", team_info)
                 team_id = team_info.get("id")
-                if team_id:
+                team_web_url = team_info.get("webUrl")
+                if team_id and team_web_url:
                     data_source.team_id = team_id
+                    data_source.team_web_url = team_web_url
+
                     db.session.commit()
                     flash(
                         "Team created and associated with data source successfully!",
                         "success",
                     )
                 else:
-                    flash("Failed to extract team ID from the response.", "error")
+                    flash("Failed to extract team ID or web url from the response.", "error")
             else:  # If there was an error
                 flash("Failed to create the team.", "error")
         else:
