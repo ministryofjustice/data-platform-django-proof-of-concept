@@ -100,7 +100,7 @@ def create_team_from_group(group_id, access_token):
             )  # Using PUT as per Graph API documentation for creating team from group
             response.raise_for_status()
             # If the request was successful, get the JSON response
-            return response.json()
+            return response
         except requests.exceptions.HTTPError as err:
             print(f"HTTP Error {err} encountered...")
             if response.status_code == 404 and retry_count < max_retries - 1:
