@@ -43,9 +43,10 @@
 {% if is_admin or user_has_access %}
     <!-- Button to launch VS Code -->
     <button onclick="launchVSCode()">Launch VS Code</button>
+    <a href="{{ data_source.team_web_url }}" target="_blank">Access MS Teams Team</a>
 {% else %}
     <!-- Link to MS Teams team for users who are not admins and don't have access -->
-    <a href="https://teams.microsoft.com/l/team/{{ data_source.aad_group_id }}/conversations" target="_blank">Access MS Teams Team</a>
+    <a href="{{ data_source.team_web_url }}" target="_blank">Access MS Teams Team</a>
 {% endif %}
 
 <script type="text/javascript">
