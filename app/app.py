@@ -210,6 +210,7 @@ def create_data_source():
                 access_token=session.get("token").get("access_token"),
             )
             if team_creation_response:
+                print(f"Team Creation Response: %s", team_creation_response)
                 team_info = team_creation_response.json()
                 print(f"Team Info: %s", team_info)
                 team_id = team_info.get("id")
