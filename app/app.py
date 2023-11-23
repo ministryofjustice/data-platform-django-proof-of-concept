@@ -57,10 +57,12 @@ oauth = OAuth(app)
 azure = oauth.register(
     "azure",
     client_id=secrets["client_id"],
-    # client_secret=secrets["client_secret"],
+    client_secret=secrets["client_s ecret"],
     server_metadata_url=f'https://login.microsoftonline.com/{secrets["tenant_id"]}/v2.0/.well-known/openid-configuration',
     client_kwargs={
         "scope": "openid email profile Group.ReadWrite.All offline_access",
+        'token_endpoint_auth_method': 'none'
+
     },
 )
 
