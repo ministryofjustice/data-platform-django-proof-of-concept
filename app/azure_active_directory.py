@@ -3,7 +3,7 @@ from flask import flash
 import functools
 import time
 
-print = functools.partial(print, flush=True) # redefine to flush the buffer always
+print = functools.partial(print, flush=True)  # redefine to flush the buffer always
 
 
 def create_aad_group(group_name, description, user_id, access_token, dry_run=False):
@@ -93,7 +93,6 @@ def create_team_from_group(group_id, access_token):
     backoff_time = 10  # seconds
 
     while retry_count < max_retries:
-
         try:
             response = requests.put(
                 url, headers=headers, json=team_data
