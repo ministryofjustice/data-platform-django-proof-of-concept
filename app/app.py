@@ -596,7 +596,7 @@ def logout():
 
 
 def check_if_user_is_admin(group_ids):
-    admin_group_name = "data-platform-single-ui-group"  # This should be the actual ID of your admin group in Azure AD
+    admin_group_name = "data-platform-coder"  # This should be the actual ID of your admin group in Azure AD
 
     # Debugging: Print the group information to the console for verification
     print("\nDebugging Info: Groups associated with the user:")
