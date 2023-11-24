@@ -12,6 +12,7 @@ from flask import (
 from flask_session import Session
 from flask_socketio import SocketIO
 from authlib.integrations.flask_client import OAuth
+from authlib.common.security import generate_token
 import requests
 import json
 from models import init_app, db, DataSource, UserDataSourcePermission, User
@@ -28,8 +29,10 @@ from geventwebsocket.handler import WebSocketHandler
 from geventwebsocket import WebSocketError
 import websocket
 import functools
+import base64
+import hashlib
 
-print = functools.partial(print, flush=True) # redefine to flush the buffer always
+print = functools.partial(print, flush=True)  # redefine to flush the buffer always
 
 # Load secrets from a JSON file
 with open("secrets.json") as f:
@@ -57,12 +60,22 @@ oauth = OAuth(app)
 azure = oauth.register(
     "azure",
     client_id=secrets["client_id"],
-    client_secret=secrets["client_secret"],
+    # client_secret is not needed for PKCE flow
     server_metadata_url=f'https://login.microsoftonline.com/{secrets["tenant_id"]}/v2.0/.well-known/openid-configuration',
     client_kwargs={
-        "scope": "openid email profile User.ReadWrite.All Group.ReadWrite.All offline_access",
+        "scope": "openid email profile Group.ReadWrite.All offline_access",
+        "response_type": "code",
+        "token_endpoint_auth_method": "none",
+        # PKCE code_challenge_methods can be plain or S256, here we use S256
+        "code_challenge_method": "S256",
     },
 )
+
+
+def pkce_transform(code_verifier):
+    """Transforms the code verifier to a code challenge."""
+    digest = hashlib.sha256(code_verifier.encode()).digest()
+    return base64.urlsafe_b64encode(digest).rstrip(b"=").decode()
 
 
 @app.route("/")
@@ -94,13 +107,27 @@ def homepage():
 
 @app.route("/login")
 def login():
+    # Generate a code verifier and corresponding code challenge
+    code_verifier = generate_token(64)
+    session["code_verifier"] = code_verifier
+    code_challenge = pkce_transform(code_verifier)
+
+    # Add code_challenge and code_challenge_method to the authorization URL
     redirect_uri = url_for("authorized", _external=True)
-    return azure.authorize_redirect(redirect_uri)
+    return azure.authorize_redirect(redirect_uri, code_challenge=code_challenge)
 
 
 @app.route("/login/authorized")
 def authorized():
-    token = azure.authorize_access_token()
+    # Retrieve the code verifier from the session
+    code_verifier = session.pop("code_verifier", None)
+    if not code_verifier:
+        flash("Code verifier not found.", "error")
+        return redirect(url_for("homepage"))
+
+    # Use the code_verifier to exchange the authorization code for an access token
+    token = azure.authorize_access_token(code_verifier=code_verifier)
+
     access_token = token.get("access_token")
     if access_token:
         session["access_token"] = access_token
@@ -225,7 +252,10 @@ def create_data_source():
                         "success",
                     )
                 else:
-                    flash("Failed to extract team ID or web url from the response.", "error")
+                    flash(
+                        "Failed to extract team ID or web url from the response.",
+                        "error",
+                    )
             else:  # If there was an error
                 flash("Failed to create the team.", "error")
         else:
