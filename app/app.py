@@ -126,7 +126,7 @@ def authorized():
         return redirect(url_for("homepage"))
 
     # Use the code_verifier to exchange the authorization code for an access token
-    token = azure.authorize_access_token(code_verifier=code_verifier)
+    token = azure.authorize_access_token()
 
     access_token = token.get("access_token")
     if access_token:
